@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>泡奶水溫混合計算器（網頁版）</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#121b2f;
+      --muted:#94a3b8;
+      --text:#e5e7eb;
+      --accent:#60a5fa;
+      --good:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --border:rgba(148,163,184,.18);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 700px at 20% 0%, rgba(96,165,250,.25), transparent 60%),
+                 radial-gradient(900px 650px at 90% 10%, rgba(52,211,153,.18), transparent 55%),
+                 var(--bg);
+      color:var(--text);
+      font-family:var(--sans);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:18px 12px 40px;
+    }
+    .phone{max-width:420px;margin:0 auto;}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 2px 14px;}
+    .title{display:flex;flex-direction:column;gap:4px;}
+    h1{font-size:18px;line-height:1.2;margin:0;letter-spacing:.2px;}
+    .subtitle{font-size:12px;color:var(--muted);line-height:1.35;}
+    .pill{font-size:12px;border:1px solid var(--border);padding:6px 10px;border-radius:999px;color:var(--muted);background:rgba(255,255,255,.04);user-select:none;white-space:nowrap;}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:12px 0;}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
+    input, select{width:100%;padding:12px 12px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(0,0,0,.25);color:var(--text);font-size:16px;outline:none;}
+    input:focus, select:focus{border-color:rgba(96,165,250,.6); box-shadow:0 0 0 3px rgba(96,165,250,.18);}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+    button.chip{border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);
+      padding:8px 10px;border-radius:999px;font-size:13px;cursor:pointer;}
+    button.chip:hover{border-color:rgba(96,165,250,.6)}
+    .btn{width:100%;padding:13px 14px;border-radius:14px;border:1px solid rgba(96,165,250,.45);
+      background:linear-gradient(180deg, rgba(96,165,250,.26), rgba(96,165,250,.10));
+      color:var(--text);font-size:16px;font-weight:700;cursor:pointer;margin-top:12px;}
+    .btn:active{transform:translateY(1px)}
+    .muted{color:var(--muted); font-size:12px; line-height:1.45}
+    .hr{height:1px;background:var(--border);margin:12px 0;}
+    .toggle{display:flex;gap:8px;border:1px solid var(--border);border-radius:14px;padding:6px;background:rgba(0,0,0,.18);}
+    .toggle button{flex:1;padding:10px 10px;border-radius:12px;border:0;background:transparent;color:var(--muted);
+      font-size:13px;font-weight:700;cursor:pointer;}
+    .toggle button.active{background:rgba(96,165,250,.22);color:var(--text);border:1px solid rgba(96,165,250,.35);}
+    .resultTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);
+      background:rgba(255,255,255,.04);color:var(--muted);}
+    .ok{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+    .steps{margin:10px 0 0;padding-left:18px;line-height:1.6;font-size:14px;}
+    .kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+    .kpi .box{border:1px solid var(--border);border-radius:14px;padding:10px 10px;background:rgba(0,0,0,.18);}
+    .kpi .num{font-family:var(--mono);font-size:16px;font-weight:800;letter-spacing:.2px;}
+    .kpi .cap{font-size:12px;color:var(--muted);margin-top:3px;}
+    .smallNote{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px;}
+    details{border:1px solid var(--border);border-radius:14px;padding:10px 12px;background:rgba(0,0,0,.12);}
+    summary{cursor:pointer;color:var(--text);font-weight:800;font-size:13px;}
+    .footer{margin-top:16px;font-size:12px;color:var(--muted);text-align:center}
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <header>
+      <div class="title">
+        <h1>泡奶水溫混合計算器</h1>
+        <div class="subtitle">輸入目標容量/溫度與冷/溫/熱水溫度，推薦最佳混合方式。</div>
+      </div>
+      <div class="pill">離線可用</div>
+    </header>
+
+    <div class="card">
+      <div class="resultTitle">
+        <div style="font-weight:900">模式</div>
+        <span id="modeBadge" class="badge">快速模式（直接到餵食溫度）</span>
+      </div>
+      <div class="muted" style="margin-top:6px">
+        安全模式會先混到 <b>沖泡溫度</b>（預設 70°C）再提示「降溫到餵食溫度」；快速模式直接混到目標溫度（自用）。
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="toggle" role="tablist" aria-label="mode">
+          <button id="btnFast" class="active" type="button">快速</button>
+          <button id="btnSafe" type="button">安全</button>
+        </div>
+        <div style="flex:1; min-width:150px">
+          <label for="brewTemp">沖泡溫度 Ts（安全模式用）</label>
+          <input id="brewTemp" type="number" inputmode="decimal" min="40" max="95" step="0.5" value="70">
+        </div>
+      </div>
+      <div class="smallNote">
+        ⚠️ 提醒：若你在「加奶粉後再加水」會影響濃度。安全模式建議：先用高溫水沖泡 → 再「冷卻」至可入口溫度（例如水浴、等待、冷卻器）。
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:900; margin-bottom:8px">目標</div>
+      <div class="grid2">
+        <div>
+          <label for="targetVol">目標容量 Vt（ml）</label>
+          <input id="targetVol" type="number" inputmode="numeric" min="10" step="1" value="180">
+        </div>
+        <div>
+          <label for="targetTemp">目標溫度 Tt（°C）</label>
+          <input id="targetTemp" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="45">
+        </div>
+      </div>
+
+      <div class="chips" aria-label="quick presets">
+        <button class="chip" type="button" data-vol="120">120 ml</button>
+        <button class="chip" type="button" data-vol="150">150 ml</button>
+        <button class="chip" type="button" data-vol="180">180 ml</button>
+        <button class="chip" type="button" data-vol="210">210 ml</button>
+        <button class="chip" type="button" data-temp="40">40°C</button>
+        <button class="chip" type="button" data-temp="45">45°C</button>
+        <button class="chip" type="button" data-temp="50">50°C</button>
+      </div>
+
+      <div class="hr"></div>
+
+      <div style="font-weight:900; margin-bottom:8px">水源溫度（現場輸入）</div>
+      <div class="grid2">
+        <div>
+          <label for="hotTemp">熱水 Th（°C）</label>
+          <input id="hotTemp" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="98">
+        </div>
+        <div>
+          <label for="warmTemp">溫水 Tw（°C）</label>
+          <input id="warmTemp" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="35">
+        </div>
+        <div>
+          <label for="coldTemp">冷水 Tc（°C）</label>
+          <input id="coldTemp" type="number" inputmode="decimal" min="0" max="100" step="0.5" value="8">
+        </div>
+        <div>
+          <label for="stepMl">取水步進（ml）</label>
+          <select id="stepMl">
+            <option value="1">1</option>
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <label style="margin:0; display:flex; align-items:center; gap:8px; cursor:pointer">
+          <input id="useHot" type="checkbox" checked> 使用熱水
+        </label>
+        <label style="margin:0; display:flex; align-items:center; gap:8px; cursor:pointer">
+          <input id="useWarm" type="checkbox" checked> 使用溫水
+        </label>
+        <label style="margin:0; display:flex; align-items:center; gap:8px; cursor:pointer">
+          <input id="useCold" type="checkbox" checked> 使用冷水
+        </label>
+      </div>
+
+      <details style="margin-top:12px">
+        <summary>三水源偏好（可選）</summary>
+        <div class="muted" style="margin-top:8px">
+          三水源本來就有很多解；這裡提供偏好：在達到目標溫度的前提下，<b>盡量少用熱水</b>。
+        </div>
+        <div class="row" style="margin-top:10px">
+          <label style="margin:0; display:flex; align-items:center; gap:8px; cursor:pointer">
+            <input id="force3" type="checkbox"> 強制使用三水源（即使兩水源可行也改用三水源）
+          </label>
+        </div>
+      </details>
+
+      <button class="btn" id="calcBtn" type="button">計算推薦比例</button>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none">
+      <div class="resultTitle">
+        <div style="font-weight:900">推薦結果</div>
+        <span id="statusBadge" class="badge">—</span>
+      </div>
+      <div class="muted" id="resultSubtitle" style="margin-top:6px">—</div>
+
+      <div class="kpi">
+        <div class="box">
+          <div class="num" id="mixLine">—</div>
+          <div class="cap">混合方案</div>
+        </div>
+        <div class="box">
+          <div class="num" id="errLine">—</div>
+          <div class="cap">估算誤差</div>
+        </div>
+      </div>
+
+      <ol class="steps" id="steps"></ol>
+      <div class="smallNote" id="noteLine"></div>
+    </div>
+
+    <div class="footer">© 自用工具。計算以理想混合為前提，現場容器吸熱/散熱會造成差異。</div>
+  </div>
+
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  let mode = "fast"; // fast | safe
+  const modeBadge = $("modeBadge");
+  const btnFast = $("btnFast");
+  const btnSafe = $("btnSafe");
+
+  function setMode(next){
+    mode = next;
+    btnFast.classList.toggle("active", mode==="fast");
+    btnSafe.classList.toggle("active", mode==="safe");
+    modeBadge.textContent = mode==="safe" ? "安全模式（先沖泡再降溫）" : "快速模式（直接到餵食溫度）";
+  }
+  btnFast.addEventListener("click", ()=>setMode("fast"));
+  btnSafe.addEventListener("click", ()=>setMode("safe"));
+
+  document.querySelectorAll("button.chip").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      if(btn.dataset.vol) $("targetVol").value = btn.dataset.vol;
+      if(btn.dataset.temp) $("targetTemp").value = btn.dataset.temp;
+    });
+  });
+
+  function toNum(v){ const n = Number(v); return Number.isFinite(n) ? n : NaN; }
+  function roundToStep(x, step){ return Math.round(x/step)*step; }
+
+  function solve2(Vt, Tt, Ta, Tb){
+    const denom = (Ta - Tb);
+    if(Math.abs(denom) < 1e-9) return null;
+    const Va = Vt * (Tt - Tb) / denom;
+    const Vb = Vt - Va;
+    if(!Number.isFinite(Va) || !Number.isFinite(Vb)) return null;
+    const ok = (Va >= -1e-6 && Vb >= -1e-6 && Va <= Vt+1e-6 && Vb <= Vt+1e-6);
+    const outT = (Va*Ta + Vb*Tb) / Vt;
+    return {aVol: Va, bVol: Vb, outTemp: outT, feasible: ok};
+  }
+
+  function computeOutTemp(vols, temps){
+    const Vt = vols.reduce((a,b)=>a+b, 0);
+    if(Vt<=0) return NaN;
+    let sum = 0;
+    for(let i=0;i<vols.length;i++) sum += vols[i]*temps[i];
+    return sum / Vt;
+  }
+
+  function recommend2(Vt, Tt, sources, step){
+    const pairs = [];
+    for(let i=0;i<sources.length;i++){
+      for(let j=i+1;j<sources.length;j++){
+        const A = sources[i], B = sources[j];
+        const sol = solve2(Vt, Tt, A.T, B.T);
+        if(!sol || !sol.feasible) continue;
+
+        let aR = roundToStep(sol.aVol, step);
+        let bR = Vt - aR;
+        bR = roundToStep(bR, step);
+
+        const drift = (aR + bR) - Vt;
+        if(Math.abs(drift) > 1e-9){
+          if(aR >= bR) aR -= drift; else bR -= drift;
+        }
+        if(aR < 0 || bR < 0) continue;
+
+        const outT = computeOutTemp([aR,bR],[A.T,B.T]);
+        const err = Math.abs(outT - Tt);
+        const denom = Math.abs(A.T - B.T);
+        const sens = denom > 0 ? (err*1000/denom) : 9999;
+
+        pairs.push({type:"2", a:A, b:B, aVol:aR, bVol:bR, outT, err, score: err*100 + sens});
+      }
+    }
+    pairs.sort((x,y)=>x.score - y.score);
+    return pairs[0] || null;
+  }
+
+  function recommend3(Vt, Tt, sources, step, force3){
+    if(sources.length < 3) return null;
+    const byKey = Object.fromEntries(sources.map(s=>[s.key,s]));
+    if(!byKey.hot || !byKey.warm || !byKey.cold) return null;
+
+    const Th = byKey.hot.T, Tw = byKey.warm.T, Tc = byKey.cold.T;
+    let best = null;
+
+    for(let vh=0; vh<=Vt; vh+=step){
+      for(let vw=0; vw<=Vt-vh; vw+=step){
+        const vc = Vt - vh - vw;
+        if(vc < 0) continue;
+        if(force3){
+          if(vh < step || vw < step || vc < step) continue;
+        }
+        const outT = computeOutTemp([vh,vw,vc],[Th,Tw,Tc]);
+        const err = Math.abs(outT - Tt);
+        const score = err*1000 + vh*0.1; // temp accuracy first, then minimize hot usage
+        if(!best || score < best.score){
+          best = {type:"3", vh, vw, vc, outT, err, score, hot:byKey.hot, warm:byKey.warm, cold:byKey.cold};
+        }
+      }
+    }
+    return best;
+  }
+
+  function formatMl(x){
+    const n = Math.round(x*10)/10;
+    return Number.isInteger(n) ? `${n} ml` : `${n} ml`;
+  }
+  function formatC(x){
+    const n = Math.round(x*10)/10;
+    return `${n}°C`;
+  }
+
+  function showResult(payload){
+    $("resultCard").style.display = "block";
+    const statusBadge = $("statusBadge");
+    const resultSubtitle = $("resultSubtitle");
+    const steps = $("steps");
+    const mixLine = $("mixLine");
+    const errLine = $("errLine");
+    const noteLine = $("noteLine");
+    steps.innerHTML = "";
+
+    if(!payload){
+      statusBadge.textContent = "無解";
+      statusBadge.className = "badge bad";
+      resultSubtitle.textContent = "目前輸入的水源溫度無法混到目標溫度（目標溫度不在任何可用水源溫度區間內）。";
+      mixLine.textContent = "—";
+      errLine.textContent = "—";
+      noteLine.textContent = "你可以：調整目標溫度、確認溫度輸入是否正確、或啟用其他水源。";
+      return;
+    }
+
+    const ok = payload.err <= 0.5;
+    statusBadge.textContent = ok ? "可用" : "可用（有誤差）";
+    statusBadge.className = "badge " + (ok ? "ok" : "warn");
+    errLine.textContent = `±${Math.round(payload.err*10)/10}°C`;
+    mixLine.textContent = payload.mixLabel;
+    resultSubtitle.textContent = payload.subtitle;
+
+    payload.steps.forEach(s=>{
+      const li = document.createElement("li");
+      li.textContent = s;
+      steps.appendChild(li);
+    });
+    noteLine.textContent = payload.note;
+  }
+
+  function buildPlan(Vt, Tt, Th, Tw, Tc, step, enabled, force3, isSafe, Ts){
+    const sources = [];
+    if(enabled.hot) sources.push({key:"hot", name:"熱水", T:Th});
+    if(enabled.warm) sources.push({key:"warm", name:"溫水", T:Tw});
+    if(enabled.cold) sources.push({key:"cold", name:"冷水", T:Tc});
+
+    const targetForMix = isSafe ? Ts : Tt;
+
+    let best2 = recommend2(Vt, targetForMix, sources, step);
+    let best = best2;
+
+    const want3 = force3 || !best2;
+    if(want3 && enabled.hot && enabled.warm && enabled.cold){
+      const best3 = recommend3(Vt, targetForMix, sources, step, force3);
+      if(best3){
+        if(force3 || !best2) best = best3;
+        else if(best3.err + 0.2 < best2.err) best = best3;
+      }
+    }
+    if(!best) return null;
+
+    let mixLabel = "";
+    let subtitle = "";
+    let steps = [];
+    let note = "";
+
+    if(best.type==="2"){
+      mixLabel = `${best.a.name}+${best.b.name}`;
+      subtitle = `建議使用兩種水源混合到 ${formatC(targetForMix)}。`;
+      steps.push(`先倒入 ${best.a.name}：${formatMl(best.aVol)}`);
+      steps.push(`再倒入 ${best.b.name}：${formatMl(best.bVol)}（補到總量 ${formatMl(Vt)}）`);
+    } else {
+      mixLabel = "熱水+溫水+冷水";
+      subtitle = `三水源解（偏好：盡量少用熱水），混合到 ${formatC(targetForMix)}。`;
+      steps.push(`倒入 熱水：${formatMl(best.vh)}`);
+      steps.push(`倒入 溫水：${formatMl(best.vw)}`);
+      steps.push(`倒入 冷水：${formatMl(best.vc)}（補到總量 ${formatMl(Vt)}）`);
+    }
+
+    if(isSafe){
+      steps.push("加入奶粉並搖勻（依奶粉罐比例）");
+      steps.push(`降溫到餵食溫度 ${formatC(Tt)}：可用水浴/等待/冷卻器（避免加水影響濃度）`);
+      note = "安全模式提醒：部分機構建議奶粉沖泡用水不低於約 70°C，再冷卻至可入口溫度。";
+      subtitle = `第 1 階段：混到 ${formatC(Ts)}、總量 ${formatMl(Vt)}。第 2 階段：降溫到 ${formatC(Tt)}。`;
+    } else {
+      note = "快速模式提醒：此為理想混合估算；容器吸熱/環境散熱會讓實際溫度略低。";
+    }
+
+    const outT = best.outT;
+    const err = Math.abs(outT - targetForMix);
+
+    return {outT, err, targetT: targetForMix, mixLabel, subtitle, steps, note};
+  }
+
+  function parseInputs(){
+    const Vt = toNum($("targetVol").value);
+    const Tt = toNum($("targetTemp").value);
+    const Th = toNum($("hotTemp").value);
+    const Tw = toNum($("warmTemp").value);
+    const Tc = toNum($("coldTemp").value);
+    const step = toNum($("stepMl").value);
+    const Ts = toNum($("brewTemp").value);
+    const enabled = {hot:$("useHot").checked, warm:$("useWarm").checked, cold:$("useCold").checked};
+    const force3 = $("force3").checked;
+    const isSafe = (mode==="safe");
+    return {Vt,Tt,Th,Tw,Tc,step,enabled,force3,isSafe,Ts};
+  }
+
+  function validateInputs(x){
+    const errs = [];
+    if(!(x.Vt>0)) errs.push("目標容量需 > 0");
+    if(!Number.isFinite(x.Tt)) errs.push("目標溫度需為數字");
+    if(!Number.isFinite(x.Th)) errs.push("熱水溫度需為數字");
+    if(!Number.isFinite(x.Tw)) errs.push("溫水溫度需為數字");
+    if(!Number.isFinite(x.Tc)) errs.push("冷水溫度需為數字");
+    if(!(x.step>0)) errs.push("步進需 > 0");
+    if(x.isSafe){
+      if(!Number.isFinite(x.Ts)) errs.push("沖泡溫度需為數字");
+      if(x.Ts <= x.Tt) errs.push("安全模式：沖泡溫度 Ts 建議高於餵食溫度 Tt");
+    }
+    if(!x.enabled.hot && !x.enabled.warm && !x.enabled.cold) errs.push("至少啟用一種水源");
+    return errs;
+  }
+
+  $("calcBtn").addEventListener("click", ()=>{
+    const x = parseInputs();
+    const errs = validateInputs(x);
+    if(errs.length){
+      showResult(null);
+      $("statusBadge").textContent = "輸入錯誤";
+      $("statusBadge").className = "badge bad";
+      $("resultSubtitle").textContent = errs.join("；");
+      return;
+    }
+    const plan = buildPlan(x.Vt, x.Tt, x.Th, x.Tw, x.Tc, x.step, x.enabled, x.force3, x.isSafe, x.Ts);
+    if(!plan){ showResult(null); return; }
+    showResult(plan);
+  });
+
+  setMode("fast");
+})();
+</script>
+</body>
+</html>
